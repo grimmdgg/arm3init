@@ -23,10 +23,11 @@ def __strip_non_ascii(string):
 def __get_magazines(element):
     magazinesnames=[]
     muzzles = element.find('muzzles')
-    for muzzle in muzzles.findall('muzzle'):
-        magazines = muzzle.find('magazines')
-        for magazine in magazines.findall('magazine'):
-            magazinesnames.append(magazine.find('name').text)
+    if(muzzles):
+	    for muzzle in muzzles.findall('muzzle'):
+             magazines = muzzle.find('magazines')
+             for magazine in magazines.findall('magazine'):
+                 magazinesnames.append(magazine.find('name').text)
             
     return magazinesnames
     
@@ -86,15 +87,16 @@ def main():
         tree = ET.parse(options.data_file_path)
         root = tree.getroot()
     else:
-        
+        urlfh=None
         try:
             urlfh = urllib.urlopen(options.data_url)
             root = ET.fromstringlist(urlfh.readlines())
-        except Exception:
-            print ("Error: failed to retrieve data from URL")
+        except Exception as e:
+            print ("Error: failed to retrieve data from",e.args)
             sys.exit()
         finally:
-            urlfh.close()
+            if(urlfh != None):
+                 urlfh.close()
     
     gearToProcess=[]
     for arg in args:
@@ -149,12 +151,13 @@ def main():
         if(options.print_config):
             if(type=='Item' or type=='Equip'):
                 print(str.format("this additemcargo [\"{0}\", {1}];",name,options.item_number))
-            if(type=='Rifle' or type=='Pistol' or type =='Launcher'):
+            elif(type=='Rifle' or type=='Pistol' or type =='Launcher'):
                 print (str.format("this addweaponcargo [\"{0}\", {1}];",name,options.weapon_number))
                 
                 for magazine in magazines:
                     print  (str.format("this addmagazinecargo [\"{0}\", {1}];",magazine,options.weapon_number * options.magazine_number))
-        
+            elif(type.isdigit()):
+			     print (str.format("this addmagazinecargo [\"{0}\", {1}];",name,options.weapon_number * options.magazine_number))
             
             
                         
